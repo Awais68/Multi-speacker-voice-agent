@@ -1,0 +1,4 @@
+livekit-agents[openai,cartesia,silero]>=1.0
+livekit-plugins-cartesia
+livekit-plugins-openai
+python-dotenv

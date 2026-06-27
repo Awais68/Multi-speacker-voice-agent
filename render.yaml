@@ -1,0 +1,17 @@
+services:
+  - type: worker
+    name: zoya-agent
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python agentcode.py start
+    envVars:
+      - key: LIVEKIT_URL
+        value: wss://your-project.livekit.cloud
+      - key: LIVEKIT_API_KEY
+        value: your_key
+      - key: LIVEKIT_API_SECRET
+        value: your_secret
+      - key: GROQ_API_KEY
+        value: your_groq_key
+      - key: CARTESIA_API_KEY
+        value: your_cartesia_key
