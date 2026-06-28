@@ -1,17 +1,16 @@
 services:
   - type: worker
     name: zoya-agent
-    runtime: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: python agentcode.py start
+    runtime: docker
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: LIVEKIT_URL
-        value: wss://your-project.livekit.cloud
+        value: wss://support-agent-zpfvruon.livekit.cloud
       - key: LIVEKIT_API_KEY
-        value: your_key
+        sync: false
       - key: LIVEKIT_API_SECRET
-        value: your_secret
+        sync: false
       - key: GROQ_API_KEY
-        value: your_groq_key
+        sync: false
       - key: CARTESIA_API_KEY
-        value: your_cartesia_key
+        sync: false
