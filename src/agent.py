@@ -13,10 +13,7 @@ from livekit.agents import (
     room_io,
 )
 from livekit.agents.beta.tools import EndCallTool
-from livekit.plugins import (
-    noise_cancellation,
-    silero,
-)
+from livekit.plugins import openai, cartesia
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
 
 logger = logging.getLogger("agent-multi-speaker-Zoya")
