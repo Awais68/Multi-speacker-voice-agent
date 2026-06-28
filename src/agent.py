@@ -10,29 +10,25 @@ from livekit.agents import (
     TurnHandlingOptions,
     cli,
     inference,
-    room_io,
+    # ✅ CHANGE 1: room_io REMOVE karo — noise_cancellation nahi use karenge
 )
 from livekit.agents.beta.tools import EndCallTool
 from livekit.plugins import openai, cartesia
-
+# ✅ CHANGE 2: silero aur noise_cancellation import REMOVE
 
 logger = logging.getLogger("agent-multi-speaker-Zoya")
-
 load_dotenv(".env.local")
-
 
 class DefaultAgent(Agent):
     def __init__(self) -> None:
         super().__init__(
             instructions="""You are a voice assistant namely Zoya designed for multi-speaker conversations. 
-
 Your behavior:
 - When multiple people are speaking, wait until one person finishes before responding
 - Address only the person who is directly asking you a question
-- If you are unsure who is speaking to you, ask \"Were you speaking to me?\"
+- If you are unsure who is speaking to you, ask "Were you speaking to me?"
 - Keep responses short and conversational — under 3 sentences
 - Do not interrupt speakers
-
 You can answer general questions, assist with tasks, and hold natural conversations.""",
             tools=[EndCallTool(
                 extra_description="""""",
@@ -40,47 +36,50 @@ You can answer general questions, assist with tasks, and hold natural conversati
                 delete_room=False,
             )],
         )
+
     async def on_enter(self):
         await self.session.generate_reply(
             instructions="""Hello! I'm Zoya. Go ahead and speak — I'll respond when you address me directly.""",
             allow_interruptions=True,
         )
 
-
 server = AgentServer()
 
 def prewarm(proc: JobProcess):
-    proc.userdata["vad"] = silero.VAD.load()
+    # ✅ CHANGE 3: silero.VAD.load() REMOVE — AgentSession bundled VAD use karta hai
+    pass
 
-server.setup_fnc = prewarm
+server.prewarm_fnc = prewarm  # setup_fnc → prewarm_fnc
 
 @server.rtc_session(agent_name="multi-speaker-Zoya")
 async def entrypoint(ctx: JobContext):
+    await ctx.connect()
+    
     session = AgentSession(
-        stt=inference.STT(model="deepgram/nova-3-multi", language="multi"),
-        llm=inference.LLM(
-            model="openai/gpt-4o",
+        stt=openai.STT(
+            model="whisper-large-v3-turbo",
+            base_url="https://api.groq.com/openai/v1",
+            api_key=os.environ["GROQ_API_KEY"],
         ),
-        tts=inference.TTS(
-            model="cartesia/sonic-3",
-            voice="a167e0f3-df7e-4d52-a9c3-f949145efdab",
-            language="en-US"
+        llm=openai.LLM(
+            model="llama-3.3-70b-versatile",
+            base_url="https://api.groq.com/openai/v1",
+            api_key=os.environ["GROQ_API_KEY"],
+        ),
+        tts=cartesia.TTS(
+            model="sonic-3",
+            voice="b53fd0c8-834a-45a6-862a-d2f6bc41a2bc",
         ),
         turn_handling=TurnHandlingOptions(turn_detection=inference.TurnDetector()),
-        vad=ctx.proc.userdata["vad"],
+        # vad= REMOVE — bundled hai
         preemptive_generation=True,
     )
 
+    # ✅ CHANGE 4: room_options REMOVE — noise_cancellation nahi hai
     await session.start(
         agent=DefaultAgent(),
         room=ctx.room,
-        room_options=room_io.RoomOptions(
-            audio_input=room_io.AudioInputOptions(
-                noise_cancellation=noise_cancellation.NC(),
-            ),
-        ),
     )
-
 
 if __name__ == "__main__":
     cli.run_app(server)
