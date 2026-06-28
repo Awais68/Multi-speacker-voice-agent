@@ -14,7 +14,7 @@ from livekit.agents import (
 )
 from livekit.agents.beta.tools import EndCallTool
 from livekit.plugins import openai, cartesia
-from livekit.plugins.turn_detector.multilingual import MultilingualModel
+
 
 logger = logging.getLogger("agent-multi-speaker-Zoya")
 
@@ -66,7 +66,7 @@ async def entrypoint(ctx: JobContext):
             voice="a167e0f3-df7e-4d52-a9c3-f949145efdab",
             language="en-US"
         ),
-        turn_handling=TurnHandlingOptions(turn_detection=MultilingualModel()),
+        turn_handling=TurnHandlingOptions(turn_detection=inference.TurnDetector()),
         vad=ctx.proc.userdata["vad"],
         preemptive_generation=True,
     )
